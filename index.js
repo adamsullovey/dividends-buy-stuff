@@ -1,3 +1,15 @@
+/*
+ * This is an exploration of ramda and Q to solve a problem I made up.
+ *
+ * The problem is to pick some consumer products, and figure out how many
+ * shares of the manufacturer I would have to own for 1 year of dividends to
+ * cover the cost of buying the product
+ *
+ * there is asynchronous calls to the Yahoo Finance API which is an excuse to use Q
+ * this could be solved in a functional style using ramda, so why not?
+ *
+ */
+
 var Q = require('q'),
 	R = require('ramda'),
 	request = require('request'),
@@ -5,6 +17,7 @@ var Q = require('q'),
 
 /**
  * Here be the data that will be processed
+ * try changing a ticker to something fake like 'F2' to see error handling in action
  */
 
 var desiredProducts = [{
@@ -144,6 +157,13 @@ var getStockInfoAtDate = function (data) {
 
 };
 
+var getLastTradePrice = function (data) {
+
+	// TODO - could I use this to get a bunch of current prices in parallel to show growth?
+	// https://developer.yahoo.com/yql/console/?q=show%20tables&env=store://datatables.org/alltableswithkeys#h=select+*+from+yahoo.finance.quote+where+symbol+in(%22YHOO%22%2C%22AAPL%22%2C%22GOOG%22%2C%22MSFT%22)
+
+};
+
 var calculateShareOwnership = function (data) {
 
 	var sharesNeeded = Math.ceil(data.goodsPrice / data.yearlyDividendInfo.value);
@@ -188,24 +208,54 @@ var promises = R.map(function (data) {
 /*
  * Node is now working away making API calls and doing math and stuff
  * we can prepare to handle the promises resolving now
- *
- * There are 2 ways to do that below. They handle errors very differently
- * With the allEncompassingPromise, an error processing just 1 item will trigger the error callback
- * With the forEach, an error processing 1 item will not stop other promises from being successfully resolved
  */
 
-// make 1 big promise that is resolved when all promises in the array are resolved
+/*
+ * make 1 big promise that is resolved when all promises in the array are resolved
+ * if one of those promises is rejected, then this bails out and runs the error handler immediately
+ */
+
 var allEncompassingPromise = Q.all(promises);
 
 // when everything is done, write out the nice output
 allEncompassingPromise.then(function (result) {
+
 	console.log('--------All Results--------');
 	R.forEach(console.log, R.pluck('niceOutput')(result));
+
 }).then(null, function (error) {
 	console.log('caught an error while resolving allEncompassingPromise:', error);
 });
 
-// also listen for processing to finish on each item, and right out results 1 by 1
+/*
+ * make 1 big promise that is resolved when all promises in the array are resolved
+ * this one will keep on chugging along even if a promise is rejected
+ * it "waits for the dust to settle" instead of bailing out
+ * the error call back is used if something in the .then function throws an error
+ * but not if something in the array of promises does
+ */
+
+var allEncompassingSettlingPromise = Q.allSettled(promises);
+
+allEncompassingSettlingPromise.then(function (result) {
+	console.log('--------All Settled Results--------');
+
+	// used to extract the result of each resolved/rejected promise
+	var parseResult = function (result) {
+		return result.state === 'fulfilled' ? result.value.niceOutput : result.reason;
+	};
+
+	R.forEach(console.log, R.map(parseResult, result));
+
+}).then(null, function (error) {
+	console.log('caught an error while resolving allEncompassingSettlingPromise:', error);
+});
+
+/*
+ * this handles each promise individually
+ * there is nothing overseeing the resolution of all promises here
+ */
+
 R.forEach(function (promise) {
 	promise.then(function (result) {
 		console.log("One result:", result.niceOutput);
