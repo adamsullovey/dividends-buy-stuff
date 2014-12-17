@@ -3,6 +3,10 @@ var Q = require('q'),
 	request = require('request'),
 	util = require('util');
 
+/**
+ * Here be the data that will be processed
+ */
+
 var desiredProducts = [{
 	ticker: 'KO',
 	goodsPrice: 1,
@@ -32,6 +36,12 @@ var desiredProducts = [{
 	goodsPrice: 16810,
 	goodsName: 'a 2014 Ford Focus'
 }];
+
+/*
+ * Here are the helper functions for processing the data
+ * Each function should handle one small task
+ * and add or remove properties from the 'data' parameter
+ */
 
 var getStockDividendHistory = function (data) {
 
@@ -63,14 +73,18 @@ var getStockDividendHistory = function (data) {
 
 var getYearOfDividends = function (data) {
 
-	// assume dividends issued quarterly
-	// 4 dividends in 1 year
-
+	/*
+	 * Yahoo returns values as strings, but I want to do math!
+	 * This does an OK job converting strings to numbers
+	 * parseInt and Math rounding functions are not appropriate for this
+	 */
 	function stringToNumber(value) {
 		return value * 1;
 	}
 
 	/*
+	 * assume dividends issued quarterly (4 times a year)
+	 *
 	 * read code from the bottom up, or this comment top down:
 	 * take first 4 elements of array
 	 * pluck the 'Dividends' property (ditch all other info)
@@ -156,15 +170,29 @@ var niceOutput = function (data) {
 
 };
 
+/*
+ * Time for pPipe!
+ * This composes 1 function out of the many helper functions
+ * http://ramda.github.io/ramdocs/docs/R.html#pPipe
+ */
 
-// pipe all my helper functions together
 var pipedFunctions = R.pPipe(getStockDividendHistory, getYearOfDividends, getStockInfoAtDate, calculateShareOwnership, niceOutput);
 
-
-// get an array of promises representing all the pipe functions running
+/*
+ * Start processing each item in parallel, and save the promise returned by pipedFunctions
+ */
 var promises = R.map(function (data) {
 	return pipedFunctions(data);
 }, desiredProducts);
+
+/*
+ * Node is now working away making API calls and doing math and stuff
+ * we can prepare to handle the promises resolving now
+ *
+ * There are 2 ways to do that below. They handle errors very differently
+ * With the allEncompassingPromise, an error processing just 1 item will trigger the error callback
+ * With the forEach, an error processing 1 item will not stop other promises from being successfully resolved
+ */
 
 // make 1 big promise that is resolved when all promises in the array are resolved
 var allEncompassingPromise = Q.all(promises);
@@ -177,7 +205,7 @@ allEncompassingPromise.then(function (result) {
 	console.log('caught an error while resolving allEncompassingPromise:', error);
 });
 
-// also listen for processing to finish, item by item
+// also listen for processing to finish on each item, and right out results 1 by 1
 R.forEach(function (promise) {
 	promise.then(function (result) {
 		console.log("One result:", result.niceOutput);
@@ -186,37 +214,3 @@ R.forEach(function (promise) {
 	});
 
 }, promises);
-
-/*
-1. Start with
-
-{
-ticker:"WB",
-goodsPrice:2000,
-goodsName: "Season's pass"
-}
-*/
-/*
-2. Get dividends from most recent dividend to 365 days earlier (1 year's worth) and attach that to the object being worked with
-
-https://developer.yahoo.com/yql/console/?q=show%20tables&env=store://datatables.org/alltableswithkeys#h=select+*+from+yahoo.finance.dividendhistory+where+symbol+%3D+%22KO%22+and+startDate+%3D+%221962-01-01%22+and+endDate+%3D+%222013-12-31%22
-*/
-
-/*
-3. Get share price on date of first dividend being counted and attach that to the object being worked with
-https://developer.yahoo.com/yql/console/?q=show%20tables&env=store://datatables.org/alltableswithkeys#h=select+*+from+yahoo.finance.historicaldata+where+symbol+%3D+%22YHOO%22+and+startDate+%3D+%222009-09-11%22+and+endDate+%3D+%222010-03-10%22
-
-4. Total up dividends earned for the year, and attach that to the object
-
-5. Divide goodsPrice by annual dividend to get # of shares needed
-
-6. Multiply # of shares by price 365 days before last dividend to get $ of investment to cover the cost of your object
-
-Optional
------
-7. Calculate today's value of shares just for fun
-
-8. Timestamp the time of calculations being made
-
-9. Delete unneeded data from the object being passed from function to function so it can be passed as JSON to frontend
-*/
