@@ -1,12 +1,12 @@
 /*
  * This is an exploration of ramda and Q to solve a problem I made up.
  *
- * The problem is to pick some consumer products, and figure out how many
- * shares of the manufacturer I would have to own for 1 year of dividends to
+ * The problem is to pick some consumer products, and figure out how much to
+ * invest in shares of the manufacturer for 1 year of dividends to
  * cover the cost of buying the product
  *
- * there is asynchronous calls to the Yahoo Finance API which is an excuse to use Q
- * this could be solved in a functional style using ramda, so why not?
+ * There are asynchronous calls to the Yahoo Finance API which is an excuse to use Q
+ * This could be solved in a functional style using ramda, so why not?
  *
  */
 
@@ -17,7 +17,8 @@ var Q = require('q'),
 
 /**
  * Here be the data that will be processed
- * try changing a ticker to something fake like 'F2' to see error handling in action
+ * try changing a ticker to something fake like 'F2' to see error handling
+ * and the different between Q.all and Q.allSettled
  */
 
 var desiredProducts = [{
@@ -207,10 +208,9 @@ var promises = R.map(function (data) {
 
 /*
  * Node is now working away making API calls and doing math and stuff
- * we can prepare to handle the promises resolving now
- */
-
-/*
+ * Prepare to handle the promises eventually resolving now
+ *
+ *
  * make 1 big promise that is resolved when all promises in the array are resolved
  * if one of those promises is rejected, then this bails out and runs the error handler immediately
  */
