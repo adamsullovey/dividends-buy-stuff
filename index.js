@@ -3,14 +3,34 @@ var Q = require('q'),
 	request = require('request'),
 	util = require('util');
 
-var stocks = [{
-	ticker: 'WB.TO',
-	goodsPrice: 2000,
-	goodsName: "Whistler Blackcomb Season's pass"
+var desiredProducts = [{
+	ticker: 'KO',
+	goodsPrice: 1,
+	goodsName: '1 can of Coca-Cola'
+}, {
+	ticker: 'STX',
+	goodsPrice: 59,
+	goodsName: 'a 500GB Internal Serial ATA Hard Drive for Desktops'
+}, {
+	ticker: 'MLHR',
+	goodsPrice: 919,
+	goodsName: 'a well equipped Herman Miller Aeron chair'
 }, {
 	ticker: 'AAPL',
-	goodsPrice: 649.00,
-	goodsName: 'unlocked iPhone 6'
+	goodsPrice: 649,
+	goodsName: 'an unlocked Apple iPhone 6'
+}, {
+	ticker: 'WB.TO',
+	goodsPrice: 1999,
+	goodsName: "a Whistler Blackcomb 2014/2015 Season's pass"
+}, {
+	ticker: 'BBD-B.TO',
+	goodsPrice: 5599,
+	goodsName: 'a 2014 Sea-Doo SPARK personal watercraft'
+}, {
+	ticker: 'F',
+	goodsPrice: 16810,
+	goodsName: 'a 2014 Ford Focus'
 }];
 
 var getStockDividendHistory = function (data) {
@@ -23,7 +43,7 @@ var getStockDividendHistory = function (data) {
 	var deferred = Q.defer();
 
 	request(options, function (error, response, body) {
-		console.log(body.query.results.quote);
+		//console.log(body.query.results.quote);
 
 		if (error) {
 			deferred.reject(error);
@@ -122,7 +142,7 @@ var calculateShareOwnership = function (data) {
 
 var niceOutput = function (data) {
 
-	var copy = "To buy %s at $%d, you could have bought %d shares of %s on %s for $%d";
+	var copy = "To buy %s for $%d with ~1 year of dividends, you could have bought %d shares of %s on %s for $%d";
 	copy = util.format(copy, data.goodsName, data.goodsPrice, data.ownershipInfo.sharesNeeded, data.ticker, data.yearlyDividendInfo.startDateString, data.ownershipInfo.purchaseCostOfShares);
 
 	data.niceOutput = copy;
@@ -131,7 +151,7 @@ var niceOutput = function (data) {
 
 };
 
-var data = stocks[0];
+//var data = desiredProducts[0];
 
 /*
 getStockDividendHistory(data)
@@ -141,13 +161,23 @@ getStockDividendHistory(data)
 	});
 */
 
+
+
+// pipe all my helper functions together
 var pipedFunctions = R.pPipe(getStockDividendHistory, getYearOfDividends, getStockInfoAtDate, calculateShareOwnership, niceOutput);
 
-pipedFunctions(data).then(function (value) {
-	console.log('done!', value);
-}).then(null, function (error) {
-	console.log('error woo', error);
-});
+R.map(function (data) {
+
+	pipedFunctions(data).then(function (value) {
+		console.log(value.niceOutput);
+	}).then(null, function (error) {
+		console.log('error woo', error);
+	});
+
+
+}, desiredProducts);
+
+
 
 /*
 1. Start with
