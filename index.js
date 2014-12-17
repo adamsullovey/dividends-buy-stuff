@@ -10,15 +10,15 @@ var desiredProducts = [{
 }, {
 	ticker: 'STX',
 	goodsPrice: 59,
-	goodsName: 'a 500GB Internal Serial ATA Hard Drive for Desktops'
-}, {
-	ticker: 'MLHR',
-	goodsPrice: 919,
-	goodsName: 'a well equipped Herman Miller Aeron chair'
+	goodsName: 'a 500GB Serial ATA Hard Drive'
 }, {
 	ticker: 'AAPL',
 	goodsPrice: 649,
 	goodsName: 'an unlocked Apple iPhone 6'
+}, {
+	ticker: 'MLHR',
+	goodsPrice: 919,
+	goodsName: 'a well equipped Herman Miller Aeron chair'
 }, {
 	ticker: 'WB.TO',
 	goodsPrice: 1999,
@@ -43,13 +43,16 @@ var getStockDividendHistory = function (data) {
 	var deferred = Q.defer();
 
 	request(options, function (error, response, body) {
-		//console.log(body.query.results.quote);
 
 		if (error) {
 			deferred.reject(error);
 		} else {
-			data.dividendHistory = body.query.results.quote;
-			deferred.resolve(data);
+			try {
+				data.dividendHistory = body.query.results.quote;
+				deferred.resolve(data);
+			} catch (e) {
+				deferred.reject('error getting dividend history for ' + data.ticker + ' ' + e);
+			}
 		}
 
 	});
@@ -66,8 +69,6 @@ var getYearOfDividends = function (data) {
 	function stringToNumber(value) {
 		return value * 1;
 	}
-
-
 
 	/*
 	 * read code from the bottom up, or this comment top down:
@@ -115,8 +116,12 @@ var getStockInfoAtDate = function (data) {
 		if (error) {
 			deferred.reject(error);
 		} else {
-			data.stockInfoAtDate = body.query.results.quote;
-			deferred.resolve(data);
+			try {
+				data.stockInfoAtDate = body.query.results.quote;
+				deferred.resolve(data);
+			} catch (e) {
+				deferred.reject('error getting stock info for ' + data.ticker + ' ' + e);
+			}
 		}
 
 	});
@@ -151,33 +156,36 @@ var niceOutput = function (data) {
 
 };
 
-//var data = desiredProducts[0];
-
-/*
-getStockDividendHistory(data)
-	.then(getStockInfoAtDate)
-	.then(function (value) {
-		console.log(value);
-	});
-*/
-
-
 
 // pipe all my helper functions together
 var pipedFunctions = R.pPipe(getStockDividendHistory, getYearOfDividends, getStockInfoAtDate, calculateShareOwnership, niceOutput);
 
-R.map(function (data) {
 
-	pipedFunctions(data).then(function (value) {
-		console.log(value.niceOutput);
-	}).then(null, function (error) {
-		console.log('error woo', error);
-	});
-
-
+// get an array of promises representing all the pipe functions running
+var promises = R.map(function (data) {
+	return pipedFunctions(data);
 }, desiredProducts);
 
+// make 1 big promise that is resolved when all promises in the array are resolved
+var allEncompassingPromise = Q.all(promises);
 
+// when everything is done, write out the nice output
+allEncompassingPromise.then(function (result) {
+	console.log('--------All Results--------');
+	R.forEach(console.log, R.pluck('niceOutput')(result));
+}).then(null, function (error) {
+	console.log('caught an error while resolving allEncompassingPromise:', error);
+});
+
+// also listen for processing to finish, item by item
+R.forEach(function (promise) {
+	promise.then(function (result) {
+		console.log("One result:", result.niceOutput);
+	}).then(null, function (error) {
+		console.log('error processing 1 item', error);
+	});
+
+}, promises);
 
 /*
 1. Start with
