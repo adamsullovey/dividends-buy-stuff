@@ -1,16 +1,16 @@
 {
-  "name": "investor-thing",
-  "version": "0.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "mocha index.js"
-  },
-  "author": "",
-  "license": "BSD-2-Clause",
-  "dependencies": {
-    "q": "~1.1.2",
-    "request": "~2.51.0",
-    "ramda": "~0.8.0"
-  }
+	"name": "dividends-buy-stuff",
+	"version": "0.0.0",
+	"description": "",
+	"main": "index.js",
+	"scripts": {
+		"test": "mocha index.js"
+	},
+	"author": "",
+	"license": "BSD-2-Clause",
+	"dependencies": {
+		"q": "~1.1.2",
+		"request": "~2.51.0",
+		"ramda": "~0.8.0"
+	}
 }
