@@ -66,6 +66,7 @@ var desiredProducts = [{
 /*
  * Time for pPipe!
  * This composes 1 function out of the many helper functions
+ * Each one accepts the return value of the previous function as a parameter
  * http://ramda.github.io/ramdocs/docs/R.html#pPipe
  */
 
@@ -89,8 +90,8 @@ var promises = R.map(function (data) {
  * Prepare to handle the promises now
  *
  *
- * make 1 big promise that is resolved when all promises in the array are resolved
- * if one of those promises is rejected, then this bails out and runs the error handler immediately
+ * Make 1 big promise that is resolved when all promises in the array are resolved
+ * If one of those promises is rejected, then this bails out immediately and runs the error handler
  */
 
 var allEncompassingPromise = Q.all(promises);
@@ -105,10 +106,10 @@ allEncompassingPromise.then(function (result) {
 });
 
 /*
- * make 1 big promise that is resolved when all promises in the array are resolved
- * this one will keep on chugging along even if a promise is rejected
- * it "waits for the dust to settle" instead of bailing out
- * the error callback is used if something in the .then function throws an error
+ * Make 1 big promise that is resolved when all promises in the array are resolved
+ * This one will keep on chugging along even if a promise is rejected
+ * It "waits for the dust to settle" instead of bailing out
+ * The error callback is used if something in the .then function throws an error
  * but not if something in the array of promises does
  */
 
