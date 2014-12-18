@@ -3,10 +3,10 @@
  *
  * The problem is to pick some consumer products, and figure out how much to
  * invest in shares of the manufacturer for 1 year of dividends to
- * cover the cost of buying the product
+ * cover the cost of buying the product (instead of more shares)
  *
  * There are asynchronous calls to the Yahoo Finance API which is an excuse to use Q
- * This could be solved in a functional style using ramda, so why not?
+ * This could be solved in a functional-ish style using ramda, so why not?
  *
  */
 
@@ -25,31 +25,42 @@ var desiredProducts = [{
 	goodsPrice: 1,
 	goodsName: '1 can of Coca-Cola'
 }, {
-	ticker: 'STX',
-	goodsPrice: 59,
-	goodsName: 'a 500GB Serial ATA Hard Drive'
+	ticker: 'CGX.TO',
+	goodsPrice: 27.7,
+	goodsName: '2 movie tickets, 2 drinks, and 1 popcorn at a Cineplex theatre'
 }, {
 	ticker: 'AAPL',
 	goodsPrice: 649,
 	goodsName: 'an unlocked Apple iPhone 6'
 }, {
-	ticker: 'MLHR',
-	goodsPrice: 919,
-	goodsName: 'a well equipped Herman Miller Aeron chair'
-}, {
 	ticker: 'WB.TO',
 	goodsPrice: 1999,
 	goodsName: "a Whistler Blackcomb 2014/2015 Season's pass"
-}, {
-	ticker: 'BBD-B.TO',
-	goodsPrice: 5599,
-	goodsName: 'a 2014 Sea-Doo SPARK personal watercraft'
 }, {
 	ticker: 'F',
 	goodsPrice: 16810,
 	goodsName: 'a 2014 Ford Focus'
 }];
 
+/* other ideas */
+/*
+{
+	ticker: 'BBD-B.TO',
+	goodsPrice: 5599,
+	goodsName: 'a 2014 Sea-Doo SPARK personal watercraft'
+},
+{
+	ticker: 'STX',
+	goodsPrice: 59,
+	goodsName: 'a 500GB Seagate Serial ATA Hard Drive'
+},
+{
+	ticker: 'MLHR',
+	goodsPrice: 919,
+	goodsName: 'a Herman Miller Aeron chair'
+},
+
+ */
 
 
 /*
