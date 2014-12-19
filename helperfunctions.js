@@ -42,30 +42,15 @@ module.exports.getStockDividendHistory = function (data) {
 module.exports.getYearOfDividends = function (data) {
 
 	/*
-	 * Yahoo returns values as strings, but I want to do math!
-	 * This does an OK job converting strings to numbers
-	 * parseInt and Math rounding functions are not appropriate for this
+	 * pull relevant stuff out of json
+	 * Assume 4 dividends per year
+	 * Yahoo returns strings like '0.2400', R.multiply(1) converts them to 0.24
 	 */
-	function stringToNumber(value) {
-		return value * 1;
-	}
-
-	/*
-	 * assume dividends issued quarterly (4 times a year)
-	 *
-	 * read code from the bottom up, or this comment top down:
-	 * take first 4 elements of array
-	 * pluck the 'Dividends' property (ditch all other info)
-	 * convert the strings like '0.2444' to numbers
-	 * add up all the numbers
-	 *
-	 */
-
-	var dividendValue = R.sum(
-		R.map(stringToNumber,
-			R.pluck('Dividends')(
-				R.slice(0, 4)(data.dividendHistory))));
-
+	var dividendValue = R.pipe(
+		R.slice(0, 4),
+		R.pluck('Dividends'),
+		R.map(R.multiply(1)),
+		R.sum)(data.dividendHistory); // execute the piped function immediately
 
 	var dividendInfo = {
 		value: dividendValue,
